@@ -15,15 +15,15 @@ const sheetsClient = new google.auth.JWT(
 
 sheetsClient.authorize(function(err, tokens){
 	if(err){
-		console.log("error connecting to google");
+		console.log("Error connecting to google");
 	}
 	else{
 		console.log("Connected to Google!");
 	}
 });
 
-var weeklyMessage = ""
-var weeklyLink = ""
+var weeklyMessage = "There is not yet a weekly tournament link"
+var weeklyLink = "There is not yet a weekly tournament message"
 
 var GphApiClient = require('giphy-js-sdk-core')
 giphy = GphApiClient(giphyToken) //look here for giphy api documentation: https://github.com/Giphy/giphy-js-sdk-core
@@ -35,9 +35,8 @@ client.on('ready', () => {
 	var myChannel = client.channels.find(channel => channel.id === '633430592184123395') //FIXME: change this to the main one in smash discord
 
 	//SEND WEEKLY TOURNAMENT UPDATES AT 7 PM ON TUESDAYS AND WEDNESDAYS
-	cron.schedule("0 19 * * 2-3", async function(){ //LOH: it sends the message and link from the google sheet. I need to get it to set it to send on Tues and Wed. I then need to figure out how to get the bot on a different sever and run it 24/7
+	cron.schedule("* * * * * *", async function(){ //LOH: it sends the message and link from the google sheet. I need to get it to set it to send on Tues and Wed. I then need to figure out how to get the bot on a different sever and run it 24/7
 		if(weeklyThisWeek){
-			console.log("ayyyyy")
 			const gsapi = google.sheets({version: 'v4', auth: sheetsClient});
 
 			const options = {
@@ -46,11 +45,18 @@ client.on('ready', () => {
 			};
 
 			let sheetsData = await gsapi.spreadsheets.values.get(options);
-			weeklyMessage = sheetsData.data.values[0]
-			weeklyLink = sheetsData.data.values[1]
+			weeklyMessage = sheetsData.data.values[0][0]
+			weeklyLink = sheetsData.data.values[0][1]
 
-			myChannel.send(weeklyMessage)
-			myChannel.send(weeklyLink)
+			myChannel.send(weeklyMessage).catch(err => {
+				console.log("Something went wrong when running this command!")
+				message.channel.send("Something went wrong when running this command!")
+			})
+
+			myChannel.send(weeklyLink).catch(err => {
+				console.log("Something went wrong when running this command!")
+				message.channel.send("Something went wrong when running this command!")
+			})
 		}
 	})
 })
@@ -84,8 +90,53 @@ client.on('message', /*async*/ (message) => { //can look at message class in dis
 			weeklyThisWeek = false;
 			message.channel.send("There is not a weekly this week. The bot will not send updates until you type !weeklyThisWeek to indicate that there is a tournament this week.")
 		}
+
+		//UPDATE TOURNAMENT LINK
+		if(message.content.startsWith(`${prefix}setTourneyLink-`)){
+			let newLink = message.content.substring(16, message.content.length);
+
+			if(!(newLink.startsWith(`https://`))){
+				let https = "https://"
+				newLink = https.concat(newLink)
+			}
+
+			const gsapi = google.sheets({version: 'v4', auth: sheetsClient});
+
+			const options = {
+				spreadsheetId: "1TcleNAyGY6KZADeBap73T2guOwcgXG5IwRBqnex4HRo",
+				range: "B2",
+				valueInputOption: 'RAW',
+				resource: { values: [ [newLink] ] }
+			};
+
+			gsapi.spreadsheets.values.update(options)
+		}
+
+		//UPDATE TOURNAMENT MESSAGE
+		if(message.content.startsWith(`${prefix}setTourneyMessage-`)){
+			let newMessage = message.content.substring(19, message.content.length);
+
+			const gsapi = google.sheets({version: 'v4', auth: sheetsClient});
+
+			const options = {
+				spreadsheetId: "1TcleNAyGY6KZADeBap73T2guOwcgXG5IwRBqnex4HRo",
+				range: "A2",
+				valueInputOption: 'RAW',
+				resource: { values: [ [newMessage] ] }
+			};
+
+			gsapi.spreadsheets.values.update(options)
+		}
 	}
 
+	//get the tournament link
+	if(message.content.startsWith(`${prefix}getTourneyLink`)){
+
+		message.author.send(weeklyLink).catch(err => { //LOH: Got this to work, need to get thing to update by sending message to bot
+			console.log("Something went wrong when running this command!")
+			message.channel.send("Something went wrong when running this command!")
+		})
+	}
 })
 
 client.login(token);
