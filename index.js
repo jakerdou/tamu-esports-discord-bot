@@ -1,5 +1,5 @@
 const Discord = require('discord.js'); //looks in node_modules folder for discord.js
-const { prefix, token, giphyToken, TOChatGeneral, CStatSmashAnnouncements, botID, helpMessage } = require('./config.json');
+const { prefix, token, giphyToken, TOChatGeneral, CStatSmashAnnouncements, botID, poolPref, helpMessage } = require('./config.json');
 const cron = require("node-cron");
 const client = new Discord.Client();
 
@@ -21,12 +21,12 @@ sheetsClient.authorize(function(err, tokens){
 	}
 });
 const gsapi = google.sheets({version: 'v4', auth: sheetsClient});
-/*********************************FIXME: need to get things to take directly from google sheets instead of relying on local variables**************************************/
+
 client.on('ready', () => {
 	console.log('Ready!')
 
 	//channel to send announcements to
-	var announcementsChannel = client.channels.find(channel => channel.id === CStatSmashAnnouncements) //FIXME: change this to the main one in smash discord
+	var announcementsChannel = client.channels.find(channel => channel.id === CStatSmashAnnouncements)
 
 	//SEND WEEKLY TOURNAMENT UPDATES AT 7 PM ON TUESDAYS AND WEDNESDAYS
 	cron.schedule("0 19 * * 2-3", async function(){ //LOH: it sends the message and link from the google sheet. I need to get it to set it to send on Tues and Wed. I then need to figure out how to get the bot on a different sever and run it 24/7
@@ -80,8 +80,8 @@ client.on('message', async (message) => { //can look at message class in discord
 						let finalGif = response.data[gifIndex];
 						message.channel.send({files: [finalGif.images.fixed_height.url]})
 					}).catch(err => {
-						console.log("Something went wrong when running this command!")
-						message.channel.send("Something went wrong when running this command!")
+						console.log("Either there are no gifs of " + gifWord + " or something went wrong when running this command!")
+						message.channel.send("Either there are no gifs of " + gifWord + " or something went wrong when running this command!")
 					})
 			}
 
@@ -129,6 +129,24 @@ client.on('message', async (message) => { //can look at message class in discord
 				message.author.send(weeklyLink)
 			}
 		}
+
+		//request early or late pool
+		if(message.content.startsWith(`${prefix}request`)){
+			var poolPrefChannel = client.channels.find(channel => channel.id === poolPref) //figure out where to define this
+
+			if(message.content.startsWith(`${prefix}requestEarlyPool`)){
+				poolPrefChannel.send("@" + message.author.username + " would like to request an early pool for this week.")
+				//message.author.send("@" + message.author.username + " would like to request an early pool for this week.")
+				message.channel.send("The TOs have been notified.")
+			}
+			if(message.content.startsWith(`${prefix}requestLatePool`)){
+				poolPrefChannel.send("@" + message.author.username + " would like to request a late pool for this week.")
+				//message.author.send("@" + message.author.username + " would like to request a late pool for this week.")
+				message.channel.send("The TOs have been notified.")
+			}
+		}
+
+		//PUT COMMAND IN FOR PEOPLE TO REQUEST EARLY OR LATE POOL
 
 		//ADMIN COMMANDS FIXME: need to get it so you can admins can send link & message to the whole general channel, maybe set it so the admins can do it regardless of what channel they send it in
 		if(message.channel.id == TOChatGeneral){ //change this to TO channel's ID
