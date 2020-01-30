@@ -1,5 +1,5 @@
 const Discord = require('discord.js'); //looks in node_modules folder for discord.js
-const { prefix, token, giphyToken, TOChatGeneral, CStatSmashAnnouncements, botID, poolPref, helpMessage } = require('./config.json');
+const { prefix, token, giphyToken, TOChatGeneral, CStatSmashAnnouncements, botID, poolPref, meID, helpMessage } = require('./config.json');
 const cron = require("node-cron");
 const client = new Discord.Client();
 
@@ -25,11 +25,14 @@ const gsapi = google.sheets({version: 'v4', auth: sheetsClient});
 client.on('ready', () => {
 	console.log('Ready!')
 
+	//find me (jakerdou)
+	var me = client.users.find(user => user.id === meID)
+
 	//channel to send announcements to
 	var announcementsChannel = client.channels.find(channel => channel.id === CStatSmashAnnouncements)
 
 	//SEND WEEKLY TOURNAMENT UPDATES AT 7 PM ON TUESDAYS AND WEDNESDAYS
-	cron.schedule("0 19 * * 2-3", async function(){ //LOH: it sends the message and link from the google sheet. I need to get it to set it to send on Tues and Wed. I then need to figure out how to get the bot on a different sever and run it 24/7
+	cron.schedule("0 1 * * 2-3", async function(){ //changed this to correct time
 
 		const options = {
 			spreadsheetId: "1TcleNAyGY6KZADeBap73T2guOwcgXG5IwRBqnex4HRo",
@@ -136,17 +139,18 @@ client.on('message', async (message) => { //can look at message class in discord
 
 			if(message.content.startsWith(`${prefix}requestEarlyPool`)){
 				poolPrefChannel.send("@" + message.author.username + " would like to request an early pool for this week.")
-				//message.author.send("@" + message.author.username + " would like to request an early pool for this week.")
 				message.channel.send("The TOs have been notified.")
 			}
 			if(message.content.startsWith(`${prefix}requestLatePool`)){
 				poolPrefChannel.send("@" + message.author.username + " would like to request a late pool for this week.")
-				//message.author.send("@" + message.author.username + " would like to request a late pool for this week.")
 				message.channel.send("The TOs have been notified.")
 			}
 		}
 
-		//PUT COMMAND IN FOR PEOPLE TO REQUEST EARLY OR LATE POOL
+		if(message.content.startsWith(`${prefix}requestUnregister`)){
+			poolPrefChannel.send("@" + message.author.username + " would like to unregister from the tournament.")
+			message.channel.send("The TOs have been notified.")
+		}
 
 		//ADMIN COMMANDS FIXME: need to get it so you can admins can send link & message to the whole general channel, maybe set it so the admins can do it regardless of what channel they send it in
 		if(message.channel.id == TOChatGeneral){ //change this to TO channel's ID
