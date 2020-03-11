@@ -1,3 +1,5 @@
+//// TODO: take out all spreadsheetId and put in config
+
 const Discord = require('discord.js'); //looks in node_modules folder for discord.js
 const { prefix, token, giphyToken, TOChatGeneral, CStatSmashAnnouncements, botID, poolPref, meID, helpMessage } = require('./config.json');
 const cron = require("node-cron");
@@ -32,7 +34,7 @@ client.on('ready', () => {
 	var announcementsChannel = client.channels.find(channel => channel.id === CStatSmashAnnouncements)
 
 	//SEND WEEKLY TOURNAMENT UPDATES AT 7 PM ON TUESDAYS AND WEDNESDAYS
-	cron.schedule("0 1 * * 2-3", async function(){ //changed this to correct time
+	cron.schedule("0 1 * * 2-4", async function(){ //changed this to correct time
 
 		const options = {
 			spreadsheetId: "1TcleNAyGY6KZADeBap73T2guOwcgXG5IwRBqnex4HRo",
@@ -87,7 +89,6 @@ client.on('message', async (message) => { //can look at message class in discord
 						message.channel.send("Either there are no gifs of " + gifWord + " or something went wrong when running this command!")
 					})
 			}
-
 		}
 
 		//check if there is a tournament this week
@@ -152,8 +153,12 @@ client.on('message', async (message) => { //can look at message class in discord
 			message.channel.send("The TOs have been notified.")
 		}
 
-		//ADMIN COMMANDS FIXME: need to get it so you can admins can send link & message to the whole general channel, maybe set it so the admins can do it regardless of what channel they send it in
-		if(message.channel.id == TOChatGeneral){ //change this to TO channel's ID
+		//ADMIN COMMANDS
+		//TO Server
+		let serverTO = client.guilds.find(guild => guild.id === "619964993181319168") // TODO: add this to config
+		let senderInTOServer = serverTO.members.find(member => member.id === message.author.id)
+
+		if(senderInTOServer != null){ //change this to TO channel's ID
 			//THERE IS A WEEKLY THIS WEEK
 			if(message.content.startsWith(`${prefix}weeklyThisWeek`)){
 				const options = {
@@ -214,6 +219,9 @@ client.on('message', async (message) => { //can look at message class in discord
 
 				gsapi.spreadsheets.values.update(options)
 			}
+		}
+		else {
+			message.author.send("You are not an admin, you cannot use admin commands.")
 		}
 	}
 })
