@@ -3,10 +3,6 @@ const { prefix, token, giphyToken, TOChatGeneral, CStatSmashAnnouncements, botID
 // const client = new Discord.Client();
 
 var botFuncs = {
-  testFunction: function(msg) {
-    msg.author.send("ayyyyyyyyy")
-  },
-
   sendGif: function(msg) {
     var GphApiClient = require('giphy-js-sdk-core')
     giphy = GphApiClient(giphyToken) //look here for giphy api documentation: https://github.com/Giphy/giphy-js-sdk-core

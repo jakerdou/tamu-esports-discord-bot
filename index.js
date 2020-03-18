@@ -62,7 +62,7 @@ client.on('ready', () => {
 client.on('message', async (message) => {
 
 	if(message.content == "!test" && message.author.id == meID){
-		botFuncs.testFunction(message);
+		message.author.send("you rang?")
 	}
 
 	//if the bot sends the message, ignore it
@@ -81,28 +81,6 @@ client.on('message', async (message) => {
 		//SENDING GIFS
 		if(message.content.startsWith(`${prefix}gif-`)){
 			botFuncs.sendGif(message)
-		}
-
-		//check if there is a tournament this week
-		if(message.content.startsWith(`${prefix}tourneyThisWeek?`)){
-
-			const options = {
-				spreadsheetId: tourneySheetID,
-				range: "B2:C2"
-			};
-
-			let sheetsData = await gsapi.spreadsheets.values.get(options);
-
-			var weeklyLink = sheetsData.data.values[0][0]
-			var weeklyTorF = sheetsData.data.values[0][1]
-
-			if(weeklyTorF == "f"){
-				message.author.send("There is no tournament this week")
-			}
-			else{
-				message.author.send("There is a tournament this week, here is the link:")
-				message.author.send(weeklyLink)
-			}
 		}
 
 		//get the tournament link
@@ -126,19 +104,19 @@ client.on('message', async (message) => {
 			}
 		}
 
-		//request early or late pool
-		if(message.content.startsWith(`${prefix}request`)){
-			var poolPrefChannel = client.channels.find(channel => channel.id === poolPref) //figure out where to define this
-
-			if(message.content.startsWith(`${prefix}requestEarlyPool`)){
-				poolPrefChannel.send("@" + message.author.username + " would like to request an early pool for this week.")
-				message.channel.send("The TOs have been notified.")
-			}
-			if(message.content.startsWith(`${prefix}requestLatePool`)){
-				poolPrefChannel.send("@" + message.author.username + " would like to request a late pool for this week.")
-				message.channel.send("The TOs have been notified.")
-			}
-		}
+		// //request early or late pool
+		// if(message.content.startsWith(`${prefix}request`)){
+		// 	var poolPrefChannel = client.channels.find(channel => channel.id === poolPref) //figure out where to define this
+		//
+		// 	if(message.content.startsWith(`${prefix}requestEarlyPool`)){
+		// 		poolPrefChannel.send("@" + message.author.username + " would like to request an early pool for this week.")
+		// 		message.channel.send("The TOs have been notified.")
+		// 	}
+		// 	if(message.content.startsWith(`${prefix}requestLatePool`)){
+		// 		poolPrefChannel.send("@" + message.author.username + " would like to request a late pool for this week.")
+		// 		message.channel.send("The TOs have been notified.")
+		// 	}
+		// }
 
 		if(message.content.startsWith(`${prefix}requestUnregister`)){
 			poolPrefChannel.send("@" + message.author.username + " would like to unregister from the tournament.")
