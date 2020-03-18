@@ -220,9 +220,6 @@ client.on('message', async (message) => { //can look at message class in discord
 				gsapi.spreadsheets.values.update(options)
 			}
 		}
-		else {
-			message.author.send("You are not an admin, you cannot use admin commands.")
-		}
 	}
 })
 
