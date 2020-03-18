@@ -1,7 +1,7 @@
 //// TODO: take out all spreadsheetId and put in config
 
 const Discord = require('discord.js'); //looks in node_modules folder for discord.js
-const { prefix, token, giphyToken, TOChatGeneral, CStatSmashAnnouncements, botID, poolPref, meID, helpMessage } = require('./config.json');
+const { prefix, token, giphyToken, TOChatGeneral, CStatSmashAnnouncements, botID, poolPref, meID, tourneySheetID, serverTOID, helpMessage } = require('./config.json');
 const cron = require("node-cron");
 const client = new Discord.Client();
 
@@ -37,7 +37,7 @@ client.on('ready', () => {
 	cron.schedule("0 1 * * 2-4", async function(){ //changed this to correct time
 
 		const options = {
-			spreadsheetId: "1TcleNAyGY6KZADeBap73T2guOwcgXG5IwRBqnex4HRo",
+			spreadsheetId: tourneySheetID,
 			range: "A2:C2"
 		};
 
@@ -95,7 +95,7 @@ client.on('message', async (message) => { //can look at message class in discord
 		if(message.content.startsWith(`${prefix}tourneyThisWeek?`)){
 
 			const options = {
-				spreadsheetId: "1TcleNAyGY6KZADeBap73T2guOwcgXG5IwRBqnex4HRo",
+				spreadsheetId: tourneySheetID,
 				range: "B2:C2"
 			};
 
@@ -117,7 +117,7 @@ client.on('message', async (message) => { //can look at message class in discord
 		if(message.content.startsWith(`${prefix}getTourneyLink`)){
 
 			const options = {
-				spreadsheetId: "1TcleNAyGY6KZADeBap73T2guOwcgXG5IwRBqnex4HRo",
+				spreadsheetId: tourneySheetID,
 				range: "B2:C2"
 			};
 
@@ -155,14 +155,14 @@ client.on('message', async (message) => { //can look at message class in discord
 
 		//ADMIN COMMANDS
 		//TO Server
-		let serverTO = client.guilds.find(guild => guild.id === "619964993181319168") // TODO: add this to config
+		let serverTO = client.guilds.find(guild => guild.id === serverTOID) // TODO: add this to config
 		let senderInTOServer = serverTO.members.find(member => member.id === message.author.id)
 
 		if(senderInTOServer != null){ //change this to TO channel's ID
 			//THERE IS A WEEKLY THIS WEEK
 			if(message.content.startsWith(`${prefix}weeklyThisWeek`)){
 				const options = {
-				spreadsheetId: "1TcleNAyGY6KZADeBap73T2guOwcgXG5IwRBqnex4HRo",
+				spreadsheetId: tourneySheetID,
 				range: "C2",
 				valueInputOption: 'RAW',
 				resource: { values: [ ["t"] ] }
@@ -176,7 +176,7 @@ client.on('message', async (message) => { //can look at message class in discord
 			//THERE IS NO WEEKLY THIS WEEK
 			if(message.content.startsWith(`${prefix}noWeeklyThisWeek`)){
 				const options = {
-				spreadsheetId: "1TcleNAyGY6KZADeBap73T2guOwcgXG5IwRBqnex4HRo",
+				spreadsheetId: tourneySheetID,
 				range: "C2",
 				valueInputOption: 'RAW',
 				resource: { values: [ ["f"] ] }
@@ -197,7 +197,7 @@ client.on('message', async (message) => { //can look at message class in discord
 				}
 
 				const options = {
-					spreadsheetId: "1TcleNAyGY6KZADeBap73T2guOwcgXG5IwRBqnex4HRo",
+					spreadsheetId: tourneySheetID,
 					range: "B2",
 					valueInputOption: 'RAW',
 					resource: { values: [ [newLink] ] }
@@ -211,7 +211,7 @@ client.on('message', async (message) => { //can look at message class in discord
 				let newMessage = message.content.substring(19, message.content.length);
 
 				const options = {
-					spreadsheetId: "1TcleNAyGY6KZADeBap73T2guOwcgXG5IwRBqnex4HRo",
+					spreadsheetId: tourneySheetID,
 					range: "A2",
 					valueInputOption: 'RAW',
 					resource: { values: [ [newMessage] ] }
@@ -219,9 +219,6 @@ client.on('message', async (message) => { //can look at message class in discord
 
 				gsapi.spreadsheets.values.update(options)
 			}
-		}
-		else {
-			message.author.send("You are not an admin, you cannot use admin commands.")
 		}
 	}
 })
