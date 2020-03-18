@@ -4,6 +4,7 @@ const Discord = require('discord.js'); //looks in node_modules folder for discor
 const { prefix, token, giphyToken, TOChatGeneral, CStatSmashAnnouncements, botID, poolPref, meID, tourneySheetID, serverTOID, helpMessage } = require('./config.json');
 const cron = require("node-cron");
 const client = new Discord.Client();
+var botFuncs = require("./botFunctions.js")
 
 const {google} = require('googleapis');
 const sheetsKeys = require('./sheetsKeys.json')
@@ -14,6 +15,8 @@ const sheetsClient = new google.auth.JWT(
 	sheetsKeys.private_key,
 	['https://www.googleapis.com/auth/spreadsheets']
 );
+
+//connect to Google
 sheetsClient.authorize(function(err, tokens){
 	if(err){
 		console.log("Error connecting to google");
@@ -56,12 +59,16 @@ client.on('ready', () => {
 	})
 })
 
-client.on('message', async (message) => { //can look at message class in discord.js to learn more about this
+client.on('message', async (message) => {
+
+	if(message.content == "!test" && message.author.id == meID){
+		message.author.send("you rang?")
+	}
 
 	//if the bot sends the message, ignore it
-	if(!(message.author.id == botID)){ //FIXME: change to correct id when put on other server
+	if(!(message.author.id == botID)){
 
-		//GET HELP ON HOW TO USE THE BOT, maybe get them to change the pinned message to the right thing
+		//GET HELP ON HOW TO USE THE BOT
 		if(message.content.startsWith(`${prefix}botHelp`)){
 			if(message.content.startsWith(`${prefix}botHelpChannel`)){
 				message.channel.send(helpMessage)
@@ -73,44 +80,7 @@ client.on('message', async (message) => { //can look at message class in discord
 
 		//SENDING GIFS
 		if(message.content.startsWith(`${prefix}gif-`)){
-			var GphApiClient = require('giphy-js-sdk-core')
-			giphy = GphApiClient(giphyToken) //look here for giphy api documentation: https://github.com/Giphy/giphy-js-sdk-core
-
-			let gifWord = message.content.substring(5, message.content.length);
-			if(!(gifWord == "")){
-				giphy.search('gifs', {"q": gifWord})
-					.then((response) => {
-						let totalGifs = response.data.length;
-						let gifIndex = Math.floor((Math.random() * 10) + 1) % totalGifs;
-						let finalGif = response.data[gifIndex];
-						message.channel.send({files: [finalGif.images.fixed_height.url]})
-					}).catch(err => {
-						console.log("Either there are no gifs of " + gifWord + " or something went wrong when running this command!")
-						message.channel.send("Either there are no gifs of " + gifWord + " or something went wrong when running this command!")
-					})
-			}
-		}
-
-		//check if there is a tournament this week
-		if(message.content.startsWith(`${prefix}tourneyThisWeek?`)){
-
-			const options = {
-				spreadsheetId: tourneySheetID,
-				range: "B2:C2"
-			};
-
-			let sheetsData = await gsapi.spreadsheets.values.get(options);
-
-			var weeklyLink = sheetsData.data.values[0][0]
-			var weeklyTorF = sheetsData.data.values[0][1]
-
-			if(weeklyTorF == "f"){
-				message.author.send("There is no tournament this week")
-			}
-			else{
-				message.author.send("There is a tournament this week, here is the link:")
-				message.author.send(weeklyLink)
-			}
+			botFuncs.sendGif(message)
 		}
 
 		//get the tournament link
@@ -134,19 +104,19 @@ client.on('message', async (message) => { //can look at message class in discord
 			}
 		}
 
-		//request early or late pool
-		if(message.content.startsWith(`${prefix}request`)){
-			var poolPrefChannel = client.channels.find(channel => channel.id === poolPref) //figure out where to define this
-
-			if(message.content.startsWith(`${prefix}requestEarlyPool`)){
-				poolPrefChannel.send("@" + message.author.username + " would like to request an early pool for this week.")
-				message.channel.send("The TOs have been notified.")
-			}
-			if(message.content.startsWith(`${prefix}requestLatePool`)){
-				poolPrefChannel.send("@" + message.author.username + " would like to request a late pool for this week.")
-				message.channel.send("The TOs have been notified.")
-			}
-		}
+		// //request early or late pool
+		// if(message.content.startsWith(`${prefix}request`)){
+		// 	var poolPrefChannel = client.channels.find(channel => channel.id === poolPref) //figure out where to define this
+		//
+		// 	if(message.content.startsWith(`${prefix}requestEarlyPool`)){
+		// 		poolPrefChannel.send("@" + message.author.username + " would like to request an early pool for this week.")
+		// 		message.channel.send("The TOs have been notified.")
+		// 	}
+		// 	if(message.content.startsWith(`${prefix}requestLatePool`)){
+		// 		poolPrefChannel.send("@" + message.author.username + " would like to request a late pool for this week.")
+		// 		message.channel.send("The TOs have been notified.")
+		// 	}
+		// }
 
 		if(message.content.startsWith(`${prefix}requestUnregister`)){
 			poolPrefChannel.send("@" + message.author.username + " would like to unregister from the tournament.")
