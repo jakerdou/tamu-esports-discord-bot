@@ -1,5 +1,4 @@
 **/node_modules
-**/images
 config.json
 package-lock.json
 DiscordBotKeyPair.pem
