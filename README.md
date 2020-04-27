@@ -1,6 +1,8 @@
 # TAMU-ESports-Discord-Bot
 A bot I coded to send automatic tournament updates and other useful information to the Texas A&amp;M Esports Super Smash Brothers Discord.
 
+The bot's name is ROB, he is named after the robot character in super smash brothers.
+
 SEND UPDATES
 ![updates](./images/rob_announcement.PNG)
 
